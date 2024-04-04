@@ -38,7 +38,7 @@ public:
      * using 0.5, but there is no guarantee in this case.
      */
     ApproxBetweenness(const Graph &G, double epsilon = 0.01, double delta = 0.1,
-                      double universalConstant = 1.0);
+                      double universalConstant = 1.0, bool computeEdgeCentrality = false);
 
     /**
      * Computes betweenness approximation on the graph passed in constructor.

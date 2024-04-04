@@ -23,13 +23,19 @@
 namespace NetworKit {
 
 ApproxBetweenness::ApproxBetweenness(const Graph &G, double epsilon, double delta,
-                                     double universalConstant)
-    : Centrality(G, true), epsilon(epsilon), delta(delta), universalConstant(universalConstant) {}
+                                     double universalConstant, bool computeEdgeCentrality)
+        : Centrality(G, true, computeEdgeCentrality), epsilon(epsilon), delta(delta), universalConstant(universalConstant) {}
 
 void ApproxBetweenness::run() {
     Aux::SignalHandler handler;
     scoreData.clear();
     scoreData.resize(G.upperNodeIdBound());
+    if (computeEdgeCentrality) {
+        count z2 = G.upperEdgeIdBound();
+        edgeScoreData.clear();
+        edgeScoreData.resize(z2);
+    }
+
 
     edgeweight vd = 0;
 
@@ -87,9 +93,15 @@ void ApproxBetweenness::run() {
                     }
                     node z = Aux::Random::weightedChoice(choices);
                     assert(z <= G.upperNodeIdBound());
-                    if (z != u)
+                    if (z != u) {
 #pragma omp atomic
                         scoreData[z] += 1. / static_cast<double>(r);
+                        if (computeEdgeCentrality) {
+                                const edgeid edgeId = G.edgeId(z, t);
+#pragma omp atomic
+                                edgeScoreData[edgeId] += 1. / static_cast<double>(r);
+                        }
+                    }
                     t = z;
                 }
             }

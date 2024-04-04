@@ -171,12 +171,13 @@ cdef class Betweenness(Centrality):
 cdef extern from "<networkit/centrality/ApproxBetweenness.hpp>":
 
 	cdef cppclass _ApproxBetweenness "NetworKit::ApproxBetweenness" (_Centrality):
-		_ApproxBetweenness(_Graph, double, double, double) except +
+		_ApproxBetweenness(_Graph, double, double, double, bool) except +
 		count numberOfSamples() except +
-
+		vector[double] edgeScores() except +
+        
 cdef class ApproxBetweenness(Centrality):
 	"""
- 	ApproxBetweenness(G, epsilon=0.01, delta=0.1, universalConstant=1.0)
+ 	ApproxBetweenness(G, epsilon=0.01, delta=0.1, universalConstant=1.0, computeEdgeCentrality=False)
 
 	Approximation of betweenness centrality according to algorithm described in Matteo Riondato 
 	and Evgenios M. Kornaropoulos: Fast Approximation of Betweenness Centrality through Sampling
@@ -202,12 +203,26 @@ cdef class ApproxBetweenness(Centrality):
 		is no guarantee in this case.
 	"""
 
-	def __cinit__(self, Graph G, epsilon=0.01, delta=0.1, universalConstant=1.0):
+	def __cinit__(self, Graph G, epsilon=0.01, delta=0.1, universalConstant=1.0, computeEdgeCentrality=False):
 		self._G = G
-		self._this = new _ApproxBetweenness(G._this, epsilon, delta, universalConstant)
+		self._this = new _ApproxBetweenness(G._this, epsilon, delta, universalConstant, computeEdgeCentrality)
 
 	def numberOfSamples(self):
 		return (<_ApproxBetweenness*>(self._this)).numberOfSamples()
+
+	def edgeScores(self):
+		"""
+		edgeScores()
+		
+		Get a vector containing the betweenness score for each edge in the graph
+		in ascending edge ID order.
+
+		Returns
+		-------
+		list(float)
+			The betweenness scores calculated by run().
+		"""
+		return (<_ApproxBetweenness*>(self._this)).edgeScores()
 
 
 cdef extern from "<networkit/centrality/EstimateBetweenness.hpp>":
